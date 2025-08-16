@@ -2,7 +2,7 @@
 #define __M_INA_H__
 
 /*
-Library based on NICHIKON edition
+Library based on NICHICON edition
 Some of library just were cut for lower wage
 VERY VERY IMPORTANT: RESTART INA BEFORE USE IT
 YOU CAN DO THIS IN Init(0 function

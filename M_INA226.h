@@ -2,24 +2,39 @@
 #define __M_INA_H__
 
 /*
-Library based on NICHICON edition
+Library based on NICHIKON edition
 Some of library just were cut for lower wage
 VERY VERY IMPORTANT: RESTART INA BEFORE USE IT
 YOU CAN DO THIS IN Init(0 function
 */
+#define INA_USE_HAL
+//#define INA_USE_CMSIS
 
 ///////////////////////////////////////////////////////
-#include "stm32f0xx_hal.h"
+#include "main.h"
 #include <stdbool.h>
+#ifdef INA_USE_CMSIS
 #include "F0xx CMSIS\CMSIS_I2C.h"
+#endif
 ///////////////////////////////////////////////////////
 
-extern I2C_HandleTypeDef hi2c1;
+//HAL handler
+///////////////////////////////////////////////////////
+#define INA_HAL_I2C_HANDLER hi2c1
+
+#ifdef INA_USE_HAL
+extern I2C_HandleTypeDef INA_HAL_I2C_HANDLER;
+#endif
+
 
 //Address
 ///////////////////////////////////////////////////////
+#ifdef INA_USE_CMSIS
 #define INA_I2C_ADDRESS 0x40
-#define INA_HAL_I2C_ADDRESS INA_I2C_ADDRESS<<1
+#endif
+#ifdef INA_USE_HAL
+#define INA_I2C_ADDRESS 0x40<<1
+#endif
 ///////////////////////////////////////////////////////
 
 //Settings
@@ -112,18 +127,30 @@ uint16_t ina_calib_val;//calibration value
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void INA_Transmit(uint8_t reg,uint16_t data){
 	uint8_t buf[]={reg,(uint8_t)(data>>8),(uint8_t)data};
-//	HAL_I2C_Master_Transmit(&hi2c1,INA_HAL_I2C_ADDRESS,buf,3,INA_I2C_HAL_TIMEOUT);
-	CMSIS_I2C_MasterTx(INA_HAL_I2C_ADDRESS,buf,3);
+#ifdef INA_USE_HAL
+	HAL_I2C_Master_Transmit(&INA_HAL_I2C_HANDLER,INA_I2C_ADDRESS,buf,3,INA_I2C_HAL_TIMEOUT);
+#endif
+#ifdef INA_USE_CMSIS
+	CMSIS_I2C_MasterTx(INA_I2C_ADDRESS,buf,3);
+#endif
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 uint16_t INA_Receive(uint8_t reg){
 	uint8_t buf[2];
-//	HAL_I2C_Master_Transmit(&hi2c1,INA_HAL_I2C_ADDRESS,&reg,1,INA_I2C_HAL_TIMEOUT);
+#ifdef INA_USE_HAL
+	HAL_I2C_Master_Transmit(&INA_HAL_I2C_HANDLER,INA_I2C_ADDRESS,&reg,1,INA_I2C_HAL_TIMEOUT);
+#endif
+#ifdef INA_USE_CMSIS
 	CMSIS_I2C_MasterTx(INA_HAL_I2C_ADDRESS,&reg,1);	
-//	HAL_I2C_Master_Receive(&hi2c1,INA_HAL_I2C_ADDRESS,(uint8_t*)buf,2,INA_I2C_HAL_TIMEOUT);
+#endif
+#ifdef INA_USE_HAL
+	HAL_I2C_Master_Receive(&INA_HAL_I2C_HANDLER,INA_I2C_ADDRESS,(uint8_t*)buf,2,INA_I2C_HAL_TIMEOUT);
+#endif
+#ifdef INA_USE_CMSIS
 	CMSIS_I2C_MasterRx(INA_HAL_I2C_ADDRESS,(uint8_t*)buf,2);
+#endif
 	return (buf[0]<<8)|(buf[1]);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

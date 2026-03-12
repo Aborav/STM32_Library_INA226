@@ -1,4 +1,4 @@
-#include "STM32_Library_INA226/M_INA226.h"
+#include "INA226/M_INA226.h"
 
 
 //Variables

@@ -136,7 +136,7 @@ float INA_GetCurrent(void) {
 	int16_t value = INA_Receive(INA_CUR_REG_ADDR);
 	float f_value = value * INA_CURRENT_LSB; //from INA to readable
 	if (f_value < 0)
-		f_value *= -1;
+		f_value = -f_value;
 	return f_value;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

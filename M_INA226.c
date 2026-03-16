@@ -1,10 +1,8 @@
 #include "INA226/M_INA226.h"
 
-
 //Variables
 ///////////////////////////////////////////////////////
-static uint16_t ina_calib_val;//calibration value
-
+static uint16_t ina_calib_val; //calibration value
 
 //CONNECTION
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -13,9 +11,9 @@ static uint16_t ina_calib_val;//calibration value
  * @param[in] reg -> register address
  * @param[in] data -> half word of data
  */
-static void INA_Transmit(uint8_t reg,uint16_t data){
-	uint8_t buf[]={reg,(uint8_t)(data>>8),(uint8_t)data};
-	INA_I2C_TX(buf,3);
+static void INA_Transmit(uint8_t reg, uint16_t data) {
+	uint8_t buf[] = { reg, (uint8_t) (data >> 8), (uint8_t) data };
+	INA_I2C_TX(buf, 3);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -25,11 +23,11 @@ static void INA_Transmit(uint8_t reg,uint16_t data){
  * @param[in] reg -> register address
  * @return half word of data
  */
-static uint16_t INA_Receive(uint8_t reg){
+static uint16_t INA_Receive(uint8_t reg) {
 	uint8_t buf[2];
-	INA_I2C_TX(&reg,1);
-	INA_I2C_RX((uint8_t*)buf,2);
-	return (buf[0]<<8)|(buf[1]);
+	INA_I2C_TX(&reg, 1);
+	INA_I2C_RX((uint8_t* )buf, 2);
+	return (buf[0] << 8) | (buf[1]);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -39,7 +37,7 @@ static uint16_t INA_Receive(uint8_t reg){
  * @brief get manufacturer ID of INA
  * @return 16 bit ID
  */
-uint16_t INA_GetID(void){
+uint16_t INA_GetID(void) {
 	return INA_Receive(INA_ID_REG_ADDR);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -50,8 +48,8 @@ uint16_t INA_GetID(void){
  * @param state--> 1-sleep,0-normal
  */
 void INA_SleepMode(uint8_t state) {
-		uint16_t cfg_register = INA_Receive(INA_CFG_REG_ADDR) & ~(0b111); //clear mode bits
-		INA_Transmit(INA_CFG_REG_ADDR, cfg_register | (state ? 0b000 : 0b111)); //1-sleep,0-normal
+	uint16_t cfg_register = INA_Receive(INA_CFG_REG_ADDR) & ~(0b111); //clear mode bits
+	INA_Transmit(INA_CFG_REG_ADDR, cfg_register | (state ? 0b000 : 0b111)); //1-sleep,0-normal
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -61,8 +59,8 @@ void INA_SleepMode(uint8_t state) {
  * @param cal --> calibration value
  */
 void INA_SetCalVal(uint16_t cal) {
-		INA_Transmit(INA_CAL_REG_ADDR, cal); //modify calibration register
-		ina_calib_val = cal; //modify global variable
+	INA_Transmit(INA_CAL_REG_ADDR, cal); //modify calibration register
+	ina_calib_val = cal; //modify global variable
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -72,8 +70,8 @@ void INA_SetCalVal(uint16_t cal) {
  * @return calibration register
  */
 uint16_t INA_GetCalVal(void) {
-		ina_calib_val = INA_Receive(INA_CAL_REG_ADDR);
-		return ina_calib_val;
+	ina_calib_val = INA_Receive(INA_CAL_REG_ADDR);
+	return ina_calib_val;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -83,8 +81,10 @@ uint16_t INA_GetCalVal(void) {
  * @param adj --> +32767 --- -32767
  */
 void INA_ChangeCalVal(int16_t adj) {
-		INA_SetCalVal(INA_GetCalVal() + adj);  //read and modify register
-		ina_calib_val = ina_calib_val + adj; //modify global variable
+	uint16_t cal_buf;
+	cal_buf = INA_GetCalVal() + adj;
+	INA_SetCalVal(cal_buf);  //read and modify register
+	ina_calib_val = cal_buf; //modify global variable
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -94,8 +94,8 @@ void INA_ChangeCalVal(int16_t adj) {
  * @param avg --> 0 to 7
  */
 void INA_SetAver(uint8_t avg) {
-		uint16_t cfg_register = INA_Receive(INA_CFG_REG_ADDR) & ~(0b111 << 9); //read register, clear required bits
-		INA_Transmit(INA_CFG_REG_ADDR, cfg_register | avg << 9); //new value
+	uint16_t cfg_register = INA_Receive(INA_CFG_REG_ADDR) & ~(0b111 << 9); //read register, clear required bits
+	INA_Transmit(INA_CFG_REG_ADDR, cfg_register | avg << 9); //new value
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -106,13 +106,12 @@ void INA_SetAver(uint8_t avg) {
  * @param samp_t --> sampling time 0 to 7
  */
 void INA_SetSampleTime(uint8_t ch, uint8_t samp_t) {
-		uint16_t cfg_register = INA_Receive(INA_CFG_REG_ADDR); //read register
-		cfg_register &= ~((0b111) << (ch ? 6 : 3)); //clear required bits
-		cfg_register |= samp_t << (ch ? 6 : 3); //new value
-		INA_Transmit(INA_CFG_REG_ADDR, cfg_register); //flush to INA
+	uint16_t cfg_register = INA_Receive(INA_CFG_REG_ADDR); //read register
+	cfg_register &= ~((0b111) << (ch ? 6 : 3)); //clear required bits
+	cfg_register |= samp_t << (ch ? 6 : 3); //new value
+	INA_Transmit(INA_CFG_REG_ADDR, cfg_register); //flush to INA
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 //MEASUREMENTS
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -122,8 +121,8 @@ void INA_SetSampleTime(uint8_t ch, uint8_t samp_t) {
  * @return bus voltage (float)
  */
 float INA_GetBusVoltage(void) {
-		uint16_t value = INA_Receive(INA_VBUS_REG_ADDR);
-		return value*0.00125F;	// LSB = 1.25mV = 0.00125V
+	uint16_t value = INA_Receive(INA_VBUS_REG_ADDR);
+	return value * 0.00125F;	// LSB = 1.25mV = 0.00125V
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -134,10 +133,11 @@ float INA_GetCurrent(void) {
 #ifdef INA_USE_RECALIBRATION
 		INA_SetCalibration(ina_calib_val); //in case of INA reboot
 #endif
-		int16_t value = INA_Receive(INA_CUR_REG_ADDR);
-		float f_value = value * INA_CURRENT_LSB; //from INA to readable
-		if (f_value<0) f_value*=-1;
-		return f_value;
+	int16_t value = INA_Receive(INA_CUR_REG_ADDR);
+	float f_value = value * INA_CURRENT_LSB; //from INA to readable
+	if (f_value < 0)
+		f_value *= -1;
+	return f_value;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -148,8 +148,8 @@ float INA_GetPower(void) {
 #ifdef INA_USE_RECALIBRATION
 		INA_SetCalibration(ina_calib_val); //in case of INA reboot
 #endif
-		uint16_t value = INA_Receive(INA_POWER_REG_ADDR);  //power register
-		return value * INA_POWER_LSB; // power register * 25
+	uint16_t value = INA_Receive(INA_POWER_REG_ADDR);  //power register
+	return value * INA_POWER_LSB; // power register * 25
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -162,8 +162,8 @@ float INA_GetShuntVoltage(void) {
 #ifdef INA_USE_RECALIBRATION
 		INA_SetCalibration(ina_calib_val); //in case of INA reboot
 #endif
-		int32_t value = INA_Receive(INA_SHUNT_REG_ADDR);
-		return value * 0.0000025f; //LSB = 2.5uV = 0.0000025V
+	int32_t value = INA_Receive(INA_SHUNT_REG_ADDR);
+	return value * 0.0000025f; //LSB = 2.5uV = 0.0000025V
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -177,25 +177,26 @@ float INA_GetShuntVoltage(void) {
  * @return fake float bus voltage
  */
 uint16_t INA_GetBusVoltageTiny(void) {
-		uint16_t value = INA_Receive(INA_VBUS_REG_ADDR); //the voltage register doesn't have sign
-		return value>>3;	//Voltage = register * 0.00125V = register / 8
+	uint16_t value = INA_Receive(INA_VBUS_REG_ADDR); //the voltage register doesn't have sign
+	return value >> 3;	//Voltage = register * 0.00125V = register / 8
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
-* @brief read current from current register
-* 3 last digits - digits after comma
-* @return mA
-*/
+ * @brief read current from current register
+ * 3 last digits - digits after comma
+ * @return mA
+ */
 uint16_t INA_GetCurrentTiny(void) {
 #ifdef INA_USE_RECALIBRATION
 		INA_SetCalibration(ina_calib_val); //in case of INA reboot
 #endif
-		int16_t value = INA_Receive(INA_CUR_REG_ADDR);
-		float f_value = value * INA_CURRENT_LSB; //from INA value to readable
-		if (f_value<0) f_value*=-1;
-		return (uint16_t)(f_value*1000);
+	int16_t value = INA_Receive(INA_CUR_REG_ADDR);
+	float f_value = value * INA_CURRENT_LSB; //from INA value to readable
+	if (f_value < 0)
+		f_value = -f_value;
+	return (uint16_t) (f_value * 1000);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -208,10 +209,10 @@ uint32_t INA_GetShuntVoltageTiny(void) {
 #ifdef INA_USE_RECALIBRATION
 		INA_SetCalibration(ina_calib_val); //in case of INA reboot
 #endif
-		int16_t value = INA_Receive(INA_SHUNT_REG_ADDR);
-		value>>=2; //voltage = LSB * reg = 2.5uV*reg = reg / (4 * 100000)
-		value/=100000;
-		return value;
+	int16_t value = INA_Receive(INA_SHUNT_REG_ADDR);
+	value >>= 2; //voltage = LSB * reg = 2.5uV*reg = reg / (4 * 100000)
+	value /= 100000;
+	return value;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -222,9 +223,9 @@ uint32_t INA_GetShuntVoltageTiny(void) {
  * @return
  */
 uint16_t INA_GetPowerTiny(void) {
-		float f_value = INA_GetPower();
-		f_value*=10; //*10 -> to see hundreds of mW
-		return (uint16_t)f_value;
+	float f_value = INA_GetPower();
+	f_value *= 10; //*10 -> to see hundreds of mW
+	return (uint16_t) f_value;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -237,12 +238,12 @@ uint16_t INA_GetPowerTiny(void) {
 void INA_Init(void) {
 	INA_Transmit(INA_CFG_REG_ADDR, 0x8000);  //hard reset
 	INA_DELAY(1);
-	uint16_t reg_mask=0;
-	reg_mask|=0b111; //shunt and bus voltage continiuous mode
-	reg_mask|=INA_CONV_SHUNT_V << 3; //shunt voltage conversion time
-	reg_mask|=INA_CONV_BUS_V << 6; //bus voltage conversion time
-	reg_mask|=INA_AVG << 9; //avarage grade
-	INA_Transmit(INA_CFG_REG_ADDR,reg_mask);
+	uint16_t reg_mask = 0;
+	reg_mask |= 0b111; //shunt and bus voltage continiuous mode
+	reg_mask |= INA_CONV_SHUNT_V << 3; //shunt voltage conversion time
+	reg_mask |= INA_CONV_BUS_V << 6; //bus voltage conversion time
+	reg_mask |= INA_AVG << 9; //avarage grade
+	INA_Transmit(INA_CFG_REG_ADDR, reg_mask);
 #ifdef INA_ALERT_SHUNT_V
 	INA_I2C_WRITE(INA_ALERT_LIMIT_REG_ADDR,INA_ALERT_SHUNT_V); //write limit value into reg
 	INA_I2C_WRITE(INA_MASK_ENABLE_REG_ADDR,0x8000); //set alerm enable
@@ -251,11 +252,10 @@ void INA_Init(void) {
 	INA_I2C_WRITE(INA_ALERT_LIMIT_REG_ADDR,INA_ALERT_BUS_V);//write limit value into reg
 	INA_I2C_WRITE(INA_MASK_ENABLE_REG_ADDR,0x4000);//set alerm enable
 #endif
-	ina_calib_val = (uint16_t)(0.00512f / (INA_CURRENT_LSB * INA_R_SHUNT));  //calculation according to R_SHUNT and MAX_CURRENT
+	ina_calib_val = (uint16_t) (0.00512f / (INA_CURRENT_LSB * INA_R_SHUNT));  //calculation according to R_SHUNT and MAX_CURRENT
 	INA_SetCalVal(ina_calib_val);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 

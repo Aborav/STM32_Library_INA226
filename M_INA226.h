@@ -2,25 +2,23 @@
 #define __M_INA_H__
 
 /*
-Library based on Nich1con edition
+ Library based on the Nich1con edition
 
-INA226 MAX INPUTS:
-U=36V
-Ush=0.8V
+ INA226 MAX INPUTS:
+ U=36V
+ Ush=0.8V
 
-HOW TO USE:
--change required settings in .h file
--INA_MAX_CURRENT - max current for your shunt (0.01R, 0.08mV max, 0.08/0.01=max current)
--INA_R_SHUNT - your shunt resistance
--INA_USE_RECALIBRATION in Nich1con library he push calibration value to INA register
-at every current, power request. I left this feature
--set alert limits (if you need it), INA alert pin toggles if value is bigger than a threshold
--set conversion time, averaging (optimal values for display refresh rate are (332us, x64)
--"tiny" functions are required if you don't want to use float when flushing out converted data
--don't forget to calibrate INA current by means of a calibration value
-*/
-
-
+ HOW TO USE:
+ -change required settings in .h file
+ -INA_MAX_CURRENT - max current for your shunt (0.01R, 0.08mV max, 0.08/0.01=max current)
+ -INA_R_SHUNT - your shunt resistance
+ -INA_USE_RECALIBRATION in Nich1con library he pushes calibration value to the INA register
+ at every current, power request. I left this feature
+ -set alert limits (if you need it), INA alert pin toggles if value is bigger than a threshold
+ -set conversion time, averaging (optimal values for display refresh rate are (332us, x64) -> 30ms FPS
+ -"tiny" functions are required if you don't want to use float when flushing out converted data
+ -don't forget to calibrate INA current by means of a calibration value
+ */
 
 ///////////////////////////////////////////////////////
 #include "main.h"
@@ -35,7 +33,7 @@ at every current, power request. I left this feature
 
 //Settings
 ///////////////////////////////////////////////////////
-#define INA_MAX_CURRENT 8
+#define INA_MAX_CURRENT 8U
 #define INA_R_SHUNT 0.01F
 ///////////////////////////////////////////////////////
 
@@ -65,7 +63,7 @@ extern I2C_HandleTypeDef hi2c1;
 #define INA_I2C_TX(buf,buf_size) \
 	HAL_I2C_Master_Transmit(&hi2c1,INA_HAL_I2C_ADDRESS,buf,buf_size,INA_I2C_HAL_TIMEOUT)
 #define INA_I2C_RX(buf,buf_size) \
-	HAL_I2C_Master_Receive(&hi2c1,INA_HAL_I2C_ADDRESS,buf,buf_size,INA_I2C_HAL_TIMEOUT);
+	HAL_I2C_Master_Receive(&hi2c1,INA_HAL_I2C_ADDRESS,buf,buf_size,INA_I2C_HAL_TIMEOUT)
 ///////////////////////////////////////////////////////
 
 //Grade of current/wattage per 1 bit in int16_t
@@ -128,17 +126,6 @@ extern I2C_HandleTypeDef hi2c1;
 #define INA_ALERT_LIMIT_REG_ADDR 0x07
 #define INA_ID_REG_ADDR 0xFE
 ///////////////////////////////////////////////////////
-
-
-
-
-
-
-
-
-
-
-
 
 //Functions prototypes
 ///////////////////////////////////////////////////////

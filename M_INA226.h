@@ -10,112 +10,102 @@
 
  HOW TO USE:
  -change required settings in .h file
- -INA_MAX_CURRENT - max current for your shunt (0.01R, 0.08mV max, 0.08/0.01=max current)
- -INA_R_SHUNT - your shunt resistance
- -INA_USE_RECALIBRATION in Nich1con library he pushes calibration value to the INA register
- at every current, power request. I left this feature
- -set alert limits (if you need it), INA alert pin toggles if value is bigger than a threshold
- -set conversion time, averaging (optimal values for display refresh rate are (332us, x64) -> 30ms FPS
- -"tiny" functions are required if you don't want to use float when flushing out converted data
- -don't forget to calibrate INA current by means of a calibration value
+ -INA_MAX_CURRENT - max current for your shunt (0.01R, 0.08mV max, 0.08/0.01=max
+ current) -INA_R_SHUNT - your shunt resistance -INA_USE_RECALIBRATION in
+ Nich1con library he pushes calibration value to the INA register at every
+ current, power request. I left this feature -set alert limits (if you need it),
+ INA alert pin toggles if value is bigger than a threshold -set conversion time,
+ averaging (optimal values for display refresh rate are (332us, x64) -> 30ms FPS
+ -"tiny" functions are required if you don't want to use float when flushing out
+ converted data -don't forget to calibrate INA current by means of a calibration
+ value
  */
 
-///////////////////////////////////////////////////////
+#include "CMSIS_I2C.h"
 #include "main.h"
 #include <stdbool.h>
-///////////////////////////////////////////////////////
 
-//Address
+/*==================CONFIGURATION=====================*/
+
+// Address
 ///////////////////////////////////////////////////////
 #define INA_I2C_ADDRESS 0x40
-#define INA_HAL_I2C_ADDRESS INA_I2C_ADDRESS<<1
-///////////////////////////////////////////////////////
+#define INA_HAL_I2C_ADDRESS INA_I2C_ADDRESS << 1
 
-//Settings
+// Settings
 ///////////////////////////////////////////////////////
-#define INA_MAX_CURRENT 8U
-#define INA_R_SHUNT 0.01F
-///////////////////////////////////////////////////////
+#define INA_MAX_CURRENT 5U
+#define INA_R_SHUNT 0.005F
 
-//define if you want to use recalibration in 
-//current and power reading functions
+// define if you want to use recalibration in
+// current and power reading functions
 ///////////////////////////////////////////////////////
-//#define INA_USE_RECALIBRATION
-///////////////////////////////////////////////////////
+// #define INA_USE_RECALIBRATION
 
-//Delay
+// Delay
 ///////////////////////////////////////////////////////
-#define INA_DELAY(ms) HAL_Delay(ms)
-///////////////////////////////////////////////////////
+#define INA_DELAY(ms) LL_mDelay(ms)
 
-//I2C HAL
+// I2C HAL
 ///////////////////////////////////////////////////////
-#define INA_I2C_HAL_TIMEOUT 0x01
-///////////////////////////////////////////////////////
+// #define INA_I2C_HAL_TIMEOUT 0x01
 
-//HAL i2c handler
+// HAL i2c handler
 ///////////////////////////////////////////////////////
-extern I2C_HandleTypeDef hi2c1;
-///////////////////////////////////////////////////////
+// extern I2C_HandleTypeDef hi2c1;
 
-//Functions
+// Functions
 ///////////////////////////////////////////////////////
-#define INA_I2C_TX(buf,buf_size) \
-	HAL_I2C_Master_Transmit(&hi2c1,INA_HAL_I2C_ADDRESS,buf,buf_size,INA_I2C_HAL_TIMEOUT)
-#define INA_I2C_RX(buf,buf_size) \
-	HAL_I2C_Master_Receive(&hi2c1,INA_HAL_I2C_ADDRESS,buf,buf_size,INA_I2C_HAL_TIMEOUT)
-///////////////////////////////////////////////////////
+#define INA_I2C_TX(buf, buf_size)                                              \
+    CMSIS_I2C_MasterTx(INA_I2C_ADDRESS, buf, buf_size)
+#define INA_I2C_RX(buf, buf_size)                                              \
+    CMSIS_I2C_MasterRx(INA_I2C_ADDRESS, buf, buf_size)
 
-//Grade of current/wattage per 1 bit in int16_t
+// Grade of current/wattage per 1 bit in int16_t
 ///////////////////////////////////////////////////////
-#define INA_CURRENT_LSB INA_MAX_CURRENT/32768.0F //current LSB
-#define INA_POWER_LSB INA_CURRENT_LSB * 25.0F //wattage LSB
-///////////////////////////////////////////////////////
+#define INA_CURRENT_LSB INA_MAX_CURRENT / 32768.0F // current LSB
+#define INA_POWER_LSB INA_CURRENT_LSB * 25.0F      // wattage LSB
 
-//Choose alert limits
+// Choose alert limits
 ///////////////////////////////////////////////////////
-//#define INA_ALERT_SHUNT_V
-//#define INA_ALERT_BUS_V 30U
-///////////////////////////////////////////////////////
+// #define INA_ALERT_SHUNT_V
+// #define INA_ALERT_BUS_V 30U
 
-//Choose conversion time for BUS VOLTAGE (measuring time)
+// Choose conversion time for BUS VOLTAGE (measuring time)
 ///////////////////////////////////////////////////////
-//#define INA_CONV_BUS_V 0b000 //140 us
-//#define INA_CONV_BUS_V 0b001 //204 us
-#define INA_CONV_BUS_V 0b010 //332 us
-//#define INA_CONV_BUS_V 0b011 //588 us
-//#define INA_CONV_BUS_V 0b100 //1100 us
-//#define INA_CONV_BUS_V 0b101 //2116 us
-//#define INA_CONV_BUS_V 0b110 //4156 us
-//#define INA_CONV_BUS_V 0b111 //8244 us
-///////////////////////////////////////////////////////
+// #define INA_CONV_BUS_V 0b000 //140 us
+// #define INA_CONV_BUS_V 0b001 //204 us
+#define INA_CONV_BUS_V 0b010 // 332 us
+// #define INA_CONV_BUS_V 0b011 //588 us
+// #define INA_CONV_BUS_V 0b100 //1100 us
+// #define INA_CONV_BUS_V 0b101 //2116 us
+// #define INA_CONV_BUS_V 0b110 //4156 us
+// #define INA_CONV_BUS_V 0b111 //8244 us
 
-//Choose conversion time for SHUNT VOLTAGE (measuring time)
+// Choose conversion time for SHUNT VOLTAGE (measuring time)
 ///////////////////////////////////////////////////////
-//#define INA_CONV_SHUNT_V 0b000 //140 us
-//#define INA_CONV_SHUNT_V 0b001 //204 us
-#define INA_CONV_SHUNT_V 0b010 //332 us
-//#define INA_CONV_SHUNT_V 0b011 //588 us
-//#define INA_CONV_SHUNT_V 0b100 //1100 us
-//#define INA_CONV_SHUNT_V 0b101 //2116 us
-//#define INA_CONV_SHUNT_V 0b110 //4156 us
-//#define INA_CONV_SHUNT_V 0b111 //8244 us
-///////////////////////////////////////////////////////
+// #define INA_CONV_SHUNT_V 0b000 //140 us
+// #define INA_CONV_SHUNT_V 0b001 //204 us
+#define INA_CONV_SHUNT_V 0b010 // 332 us
+// #define INA_CONV_SHUNT_V 0b011 //588 us
+// #define INA_CONV_SHUNT_V 0b100 //1100 us
+// #define INA_CONV_SHUNT_V 0b101 //2116 us
+// #define INA_CONV_SHUNT_V 0b110 //4156 us
+// #define INA_CONV_SHUNT_V 0b111 //8244 us
 
-//Choose average grade (increases conversion time)
+// Choose average grade (increases conversion time)
 ///////////////////////////////////////////////////////
-//#define INA_AVG 0b000 //X1
-//#define INA_AVG 0b001 //X4
-//#define INA_AVG 0b010 //X16
-#define INA_AVG 0b011 //X64
-//#define INA_AVG 0b100 //X128
-//#define INA_AVG 0b101 //X256
-//#define INA_AVG 0b110 //X512
-//#define INA_AVG 0b111 //X1024
-///////////////////////////////////////////////////////
+// #define INA_AVG 0b000 //X1
+// #define INA_AVG 0b001 //X4
+// #define INA_AVG 0b010 //X16
+#define INA_AVG 0b011 // X64
+// #define INA_AVG 0b100 //X128
+// #define INA_AVG 0b101 //X256
+// #define INA_AVG 0b110 //X512
+// #define INA_AVG 0b111 //X1024
 
-//Registers
-///////////////////////////////////////////////////////
+/*===========DEFINITIONS===========*/
+
 #define INA_CFG_REG_ADDR 0x00
 #define INA_SHUNT_REG_ADDR 0x01
 #define INA_VBUS_REG_ADDR 0x02
@@ -125,10 +115,9 @@ extern I2C_HandleTypeDef hi2c1;
 #define INA_MASK_ENABLE_REG_ADDR 0x06
 #define INA_ALERT_LIMIT_REG_ADDR 0x07
 #define INA_ID_REG_ADDR 0xFE
-///////////////////////////////////////////////////////
 
-//Functions prototypes
-///////////////////////////////////////////////////////
+/*==============FUNCTIONS=============*/
+
 void INA_Init(void);
 
 uint16_t INA_GetID(void);
@@ -144,10 +133,10 @@ float INA_GetCurrent(void);
 float INA_GetPower(void);
 float INA_GetShuntVoltage(void);
 
+// No float usage
 uint16_t INA_GetBusVoltageTiny(void);
 uint16_t INA_GetCurrentTiny(void);
 uint32_t INA_GetShuntVoltageTiny(void);
 uint16_t INA_GetPowerTiny(void);
-///////////////////////////////////////////////////////
 
 #endif

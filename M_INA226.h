@@ -57,9 +57,9 @@
 // Functions
 ///////////////////////////////////////////////////////
 #define INA_I2C_TX(buf, buf_size)                                              \
-    CMSIS_I2C_MasterTx(INA_I2C_ADDRESS, buf, buf_size)
+    CMSIS_I2C_MasterTx(INA_HAL_I2C_ADDRESS, buf, buf_size)
 #define INA_I2C_RX(buf, buf_size)                                              \
-    CMSIS_I2C_MasterRx(INA_I2C_ADDRESS, buf, buf_size)
+    CMSIS_I2C_MasterRx(INA_HAL_I2C_ADDRESS, buf, buf_size)
 
 // Grade of current/wattage per 1 bit in int16_t
 ///////////////////////////////////////////////////////

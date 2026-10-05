@@ -174,7 +174,7 @@ float INA_GetShuntVoltage(void) {
 /**
  * @brief get bus voltage in uint16_t
  * 2 last digits - digits after comma
- * @return fake float bus voltage
+ * @return 1234 -> 12V,340mV
  */
 uint16_t INA_GetBusVoltageTiny(void) {
     uint16_t value = INA_Receive(
@@ -218,7 +218,7 @@ int32_t INA_GetShuntVoltageTiny(void) {
 /**
  * @brief get wattage in uint16_t
  * 1 last digit - digit after comma
- * @return
+ * @return 123 -> 12W,300mW
  */
 uint16_t INA_GetPowerTiny(void) {
     uint16_t value = INA_Receive(INA_POWER_REG_ADDR); // power register

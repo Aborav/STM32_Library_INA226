@@ -6,19 +6,21 @@
 
  INA226 MAX INPUTS:
  U=36V
- Ush=0.8V
+ Ush=0.08V
 
  HOW TO USE:
  -change required settings in .h file
+ -i2c address / i2c transmit / i2c recieve / i2c delay
  -INA_MAX_CURRENT - max current for your shunt (0.01R, 0.08mV max, 0.08/0.01=max
- current) -INA_R_SHUNT - your shunt resistance -INA_USE_RECALIBRATION in
- Nich1con library he pushes calibration value to the INA register at every
- current, power request. I left this feature -set alert limits (if you need it),
- INA alert pin toggles if value is bigger than a threshold -set conversion time,
- averaging (optimal values for display refresh rate are (332us, x64) -> 30ms FPS
+ current) 
+ -INA_R_SHUNT - your shunt resistance 
+ -INA_USE_RECALIBRATION in Nich1con library he pushes calibration value to the INA register at every
+ current, power request. I left this feature undefined, so you can use it if needed.
+ -set alert limits (if you need it), INA alert pin toggles if value is bigger than a threshold 
+ -set conversion time, averaging (optimal values for display refresh rate are (332us, x64) -> 30ms FPS
  -"tiny" functions are required if you don't want to use float when flushing out
- converted data -don't forget to calibrate INA current by means of a calibration
- value
+ converted data 
+ -don't forget to calibrate INA current by means of a calibration value
  */
 
 #include "CMSIS_I2C.h"
@@ -60,7 +62,7 @@
 #define INA_I2C_RX(buf, buf_size)                                              \
     CMSIS_I2C_MasterRx(INA_HAL_I2C_ADDRESS, buf, buf_size)
 
-// Grade of current/wattage per 1 bit in int16_t
+// Grade of current/wattage per 1 bit
 ///////////////////////////////////////////////////////
 #define INA_CURRENT_LSB INA_MAX_CURRENT / 32768.0F // current LSB
 #define INA_POWER_LSB INA_CURRENT_LSB * 25.0F      // wattage LSB
@@ -132,7 +134,7 @@ float INA_GetCurrent(void);
 float INA_GetPower(void);
 float INA_GetShuntVoltage(void);
 
-// no float output
+// no float use
 uint16_t INA_GetBusVoltageTiny(void);
 int16_t INA_GetCurrentTiny(void);
 int32_t INA_GetShuntVoltageTiny(void);

@@ -23,7 +23,6 @@
 
 #include "CMSIS_I2C.h"
 #include "main.h"
-#include <stdbool.h>
 
 /*==================CONFIGURATION=====================*/
 
@@ -133,10 +132,10 @@ float INA_GetCurrent(void);
 float INA_GetPower(void);
 float INA_GetShuntVoltage(void);
 
-// No float usage
+// no float output
 uint16_t INA_GetBusVoltageTiny(void);
-uint16_t INA_GetCurrentTiny(void);
-uint32_t INA_GetShuntVoltageTiny(void);
+int16_t INA_GetCurrentTiny(void);
+int32_t INA_GetShuntVoltageTiny(void);
 uint16_t INA_GetPowerTiny(void);
 
 #endif
